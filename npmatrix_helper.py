@@ -1,5 +1,7 @@
 from IPython.core.display import Markdown, display
 import numpy as np
+from numpy.core.numeric import False_
+#from typing import Union
 #import math 
 
 
@@ -15,19 +17,20 @@ def printmd(string:str):
 def printMatrix(matrix:np.ndarray, decimals:int=None, name:str=None, maxSize:int=20):
     '''
     Matrix Markdown in Jupyter
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ==========================
 
-    prints a ``matrix:numpy.ndarray`` as Matrix in Jupyter cell output  
-      
-    using ``decimals`` decimal places for each element. None= use unformatted output.  
-    ``name`` can be specified to print name= before the matrix
-    ``maxSize`` can be specified to limit the columns/rows printed to maxSize elements. More rows/columns will be skipped indicated with ...
+    prints a ``matrix:numpy.ndarray`` as Matrix in Jupyter cell output  \
+        
+    ``decimals`` decimal places for each element. None= use unformatted output.  \
+    ``name`` can be specified to print name= before the matrix  
+    ``maxSize`` can be specified to limit the columns/rows printed to maxSize elements. More rows/columns will be skipped indicated with ...  
       
     List use: Both ``matrix`` and ``name`` can be a python list, preferably wit hthe same numbers of elements, to print multiple matrices at once.
     
-    *Raises* 
-    *  Exception if the matrix to print has more than two dimensions!
-    *  TypeError if the matrix is not an numpy.ndarray
+    Raises:
+    ~~~~~~~
+    *  Exception if the matrix to print has more than two dimensions!  
+    *  TypeError if the matrix is not an numpy.ndarray  
     '''
     def oneMatrix(matr, name):
         if isinstance(matr, np.ndarray):
@@ -85,7 +88,7 @@ def printMatrix(matrix:np.ndarray, decimals:int=None, name:str=None, maxSize:int
             return mdheader+mstr+mdfooter
         else:
             # return (type(matr) + ' is not supported')
-            raise TypeError(Wrong type of matrix: only numpy.ndarray is supported.)
+            raise TypeError('Wrong type of matrix: only numpy.ndarray is supported.')
             
     if isinstance(matrix, list):
         coll = ''
@@ -101,10 +104,20 @@ def printMatrix(matrix:np.ndarray, decimals:int=None, name:str=None, maxSize:int
     printmd(coll)
     #print(coll)    
         
-def matrixInfo(matrix:np.ndarray, name:str='A', verbose:bool=False):
+def matrixInfo(matrix:np.ndarray, name:str='A', verbose:bool=False, decimals:int=None, maxSize:int=20, surfaceGraph=False):
+    '''
+    Matrix quick analysis in Jupyter
+    ================================
+    Prints some short analysis of the matrix passed, such as determinant, eingenvectors and -values, inverse
+
+    ``decimals`` decimal places for each element. None= use unformatted output.  
+    ``name`` can be specified to print name= before the matrix  
+    ``maxSize`` can be specified to limit the columns/rows printed to maxSize elements. More rows/columns will be skipped indicated with ...  
+    ``verbose`` True will print more hints to the analyses, e.g. Wikipedia links.
+    '''
     if len(matrix.shape) in [1,2]:
         printmd(f'## Overview for the {len(matrix.shape)}-dimensional matrix {name}')
-        printMatrix(matrix, name=name)
+        printMatrix(matrix, name=name, decimals=decimals)
     else:
         printmd(f'## Overview for the {len(matrix.shape)}-dimensional matrix {name}')
     eigval, eigvec = np.linalg.eig(matrix)
@@ -114,13 +127,16 @@ def matrixInfo(matrix:np.ndarray, name:str='A', verbose:bool=False):
         printmd('The eigenvalues are the measure of scaling. Eigenvectors by numpy are normalized in length.  ')
         printmd('There might not be a solution in real space, so the eigenvectors and eigenvalues can be complex vectors and numbers respectively.  ')
         printmd('[Wikipedia link.](https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors)  ')
-    printMatrix([eigvec[:,x] for x in range(eigvec.shape[0])], name=['v_{{{}}}'.format(x) for x in list(eigval)])
+    printMatrix([eigvec[:,x] for x in range(eigvec.shape[0])], name=['v_{{{}}}'.format(x) for x in list(eigval)], decimals=decimals, maxSize=maxSize)
     printmd('## Euclidian Norm (2nd)')
     if verbose:
         # https://en.wikipedia.org/wiki/Matrix_norm
         printmd('[Wikipedia link.](https://en.wikipedia.org/wiki/Matrix_norm)  ')
     printmd(f'$ {{\|{name}\|_2}} =' + str(np.linalg.norm(matrix))+'$')
     printmd('### Determinant')
+    if verbose:
+        # https://en.wikipedia.org/wiki/Matrix_norm
+        printmd('[Wikipedia link.](https://en.wikipedia.org/wiki/Determinant)  ')
     printmd(f'${{det}}_{{{name}}} = $' + str(np.linalg.det(matrix)))
     printmd('### Rank')
     if verbose: #
@@ -132,9 +148,23 @@ def matrixInfo(matrix:np.ndarray, name:str='A', verbose:bool=False):
     printmd('### Inverse')
     try:
         i = np.linalg.inv(matrix)
-        printMatrix(i, name= f'{{{name}}}^{{-1}}')
+        printMatrix(i, name= f'{{{name}}}^{{-1}}', decimals=decimals, maxSize=maxSize)
     except Exception as exc:
         printmd('_there is no inverse to that matrix, or at least it could not be computed._')
         print(exc)
+    if surfaceGraph and len(matrix.shape)==2:
+        import plotly.graph_objects as go
+        fig = go.Figure(go.Surface(
+            contours = {
+                "z": {"show": True, "start": np.mean(matrix.flatten())-np.std(matrix.flatten()), "end": np.mean(matrix.flatten())+np.std(matrix.flatten())*1.01, "size": np.std(matrix.flatten())}
+                },
+            x = list(range(matrix.shape[0])),
+            y = list(range(matrix.shape[1])),
+            z = matrix))
+        fig.layout.title.text = "Surface approximation (with +/- one std deviation markers"
+        fig.update_layout(xaxis_title = 'rows',
+            yaxis_title='columns')
+        fig.show()
+
     
     
