@@ -57,3 +57,33 @@ class Xdict(dict):
             return val 
         else:
             return super(Xdict, self).__getitem__(paths)
+
+class Xlist(list):
+    def __dotfind(data, path):
+        data = data.copy()
+        # ignore escaped dots
+        pescaped = re.sub('\r', '.', re.sub('\.', '\n', re.sub('\\\.', '\r', path),),)
+        for p in pescaped.split('\n'):
+            try:
+                if isinstance(data, (tuple, list)):
+                    p2 = int(p)
+                elif isinstance(data, dict):
+                    p2 = p
+                data = data[p2]
+            except:
+                raise
+        return data
+    def __init__(self, *args, **kwargs):
+        super(Xdict, self).__init__(*args, **kwargs)
+        self.verbose = False
+    def __getattr__(self,name):
+        try:
+            z = self[name]
+            if self.verbose:
+                print('Name: ', name, ' Type: ', type(name))
+            if isinstance(z, dict):
+                return Xdict(z)
+            else:
+                return z
+        except:
+            pass
