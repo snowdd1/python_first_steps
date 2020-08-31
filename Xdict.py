@@ -16,6 +16,7 @@ class Xdict(dict):
         pescaped = re.sub('\r', '.', re.sub('\.', '\n', re.sub('\\\.', '\r', path),),)
         for p in pescaped.split('\n'):
             try:
+                p2 = None
                 if isinstance(data, (tuple, list)):
                     p2 = int(p)
                 elif isinstance(data, dict):
@@ -34,6 +35,8 @@ class Xdict(dict):
                 print('Name: ', name, ' Type: ', type(name))
             if isinstance(z, dict):
                 return Xdict(z)
+            elif isinstance(z, (tuple, list)):
+                return Xlist(z)
             else:
                 return z
         except:
@@ -74,15 +77,17 @@ class Xlist(list):
                 raise
         return data
     def __init__(self, *args, **kwargs):
-        super(Xdict, self).__init__(*args, **kwargs)
+        super(Xlist, self).__init__(*args, **kwargs)
         self.verbose = False
     def __getattr__(self,name):
         try:
-            z = self[name]
+            z = self[int(name[1:])]
             if self.verbose:
                 print('Name: ', name, ' Type: ', type(name))
             if isinstance(z, dict):
                 return Xdict(z)
+            elif isinstance(z, (tuple, list)):
+                return Xlist(z)
             else:
                 return z
         except:
