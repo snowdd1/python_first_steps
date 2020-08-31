@@ -67,6 +67,7 @@ class Xlist(list):
         # ignore escaped dots
         pescaped = re.sub('\r', '.', re.sub('\.', '\n', re.sub('\\\.', '\r', path),),)
         for p in pescaped.split('\n'):
+            p2 = None
             try:
                 if isinstance(data, (tuple, list)):
                     p2 = int(p)
