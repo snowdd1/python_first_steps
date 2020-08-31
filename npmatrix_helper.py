@@ -162,8 +162,8 @@ def matrixInfo(matrix:np.ndarray, name:str='A', verbose:bool=False, decimals:int
             y = list(range(matrix.shape[1])),
             z = matrix))
         fig.layout.title.text = "Surface approximation (with +/- one std deviation markers"
-        fig.update_layout(xaxis_title = 'rows',
-            yaxis_title='columns')
+        fig.update_layout(xaxis_title = 'column',
+            yaxis_title='row')
         fig.show()
 
     
