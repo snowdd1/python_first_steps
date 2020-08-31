@@ -6,6 +6,7 @@ class Xdict(dict):
     ``xdict = Xdict(dict)`` Constructor, returns a Xdict.
     ``xdict[pathlist]``:
     ``xdict[['dot.notation.getitem', 'alternative.path']]`` returns the value of getitem in a dictionary of the structure {'dot': {'notation': {'getitem':42}}}, 'alternative.path' will only by tried if 'dot.notation.getitem' is not a valid path.
+    ``xdict.dot.notation.getitem`` will also return the famous 42 here for dict-only deep structures.
     ``xdict['dot']``  same as dict['dot']
     ``xdict.verbose=True`` enable print outs for debugging. 
     '''
@@ -26,6 +27,17 @@ class Xdict(dict):
     def __init__(self, *args, **kwargs):
         super(Xdict, self).__init__(*args, **kwargs)
         self.verbose = False
+    def __getattr__(self,name):
+        try:
+            z = self[name]
+            if self.verbose:
+                print('Name: ', name, ' Type: ', type(name))
+            if isinstance(z, dict):
+                return Xdict(z)
+            else:
+                return z
+        except:
+            pass
     def __getitem__(self, paths):  
         if isinstance(paths, list):
             for path in paths:  
