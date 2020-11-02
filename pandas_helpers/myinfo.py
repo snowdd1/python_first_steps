@@ -1,5 +1,7 @@
+import pandas as pd
+import numpy as np
+import scipy.stats as stats
 
-#
 def myinfo(df:pd.core.frame.DataFrame): # supposed to be of type pd.io.formats.style.Styler but that has suddenly vanished from colab...
     def highlight_max(s):
         '''
